@@ -221,6 +221,15 @@ var tourSteps=[
 ];
 var tourOn=false,ti=0,tt=null,bar=$("tourbar"),cap=$("tourcap"),bsvg=$("botsvg");
 function stopTour(done){tourOn=false;clearTimeout(tt);if(window.speechSynthesis)speechSynthesis.cancel();bar.hidden=true;bsvg.classList.remove("speaking");$("tour").textContent="Take the tour";if(done)$("bubble").textContent="That’s the tour! Tap a question if you want to know more."}
+function botVoice(){
+ if(!window.speechSynthesis)return null;
+ var vs=speechSynthesis.getVoices().filter(function(v){return /^en/i.test(v.lang)});
+ var pref=/(Aaron|Daniel|Fred|Arthur|Alex|Oliver|Rishi|Gordon|Evan|Tom|Guy|David|Mark|George|James|Male)/i;
+ var bad=/(Samantha|Karen|Moira|Tessa|Fiona|Victoria|Allison|Ava|Susan|Zira|Female|Siri)/i;
+ for(var i=0;i<vs.length;i++){if(pref.test(vs[i].name)&&!bad.test(vs[i].name))return vs[i]}
+ return null;
+}
+if(window.speechSynthesis)speechSynthesis.getVoices();
 function say(){
  if(!tourOn)return;
  if(ti>=tourSteps.length){stopTour(true);var b=$("bt");if(b)b.scrollIntoView();return}
@@ -230,7 +239,7 @@ function say(){
  cap.textContent=s[1];$("bubble").textContent=s[1];bsvg.classList.add("speaking");
  function next(){if(!tourOn)return;bsvg.classList.remove("speaking");ti++;tt=setTimeout(say,500)}
  if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
-  var u=new SpeechSynthesisUtterance(s[1]);u.pitch=1.2;u.onend=next;u.onerror=next;
+  var u=new SpeechSynthesisUtterance(s[1]);var bv=botVoice();if(bv){u.voice=bv;u.lang=bv.lang}u.pitch=.8;u.rate=.98;u.onend=next;u.onerror=next;
   speechSynthesis.cancel();speechSynthesis.speak(u);
  }else{tt=setTimeout(next,Math.max(3500,s[1].length*60))}
 }
