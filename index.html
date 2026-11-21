@@ -84,6 +84,8 @@ nav.top a[aria-current]{background:var(--accent);color:var(--onaccent)}
 .panel .chip[aria-pressed="true"]{background:var(--sun);border-color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.panel .chip{transition:none}}
 img,a,svg{-webkit-user-drag:none;user-drag:none}
+.bot svg.speaking .mouth{animation:talk .28s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.bot svg.speaking .mouth{animation:none}}
 </style>
 </head>
 <body>
@@ -198,8 +200,28 @@ $("copy").onclick=function(){
  try{navigator.clipboard.writeText(m).then(ok,function(){s.textContent="Email: "+m})}catch(e){s.textContent="Email: "+m}
 };
 var qa=[["What does Akif do?","He buys media for Google Search at WPP Media. That means planning where ads run, getting them booked, and making sure they deliver."],["What is he best at?","Keeping big campaigns on track: working with partners, watching delivery, and using data to fix problems early."],["Biggest events?","The Milan Olympics, the Super Bowl, the FIFA Men’s World Cup, the NBA Finals and the World Series."],["How did he get started?","He began in economics, found the AMA club through a flyer, switched to marketing, then joined COOP and landed at WPP."],["How do I reach him?","Email akifrahman14@gmail.com or message him on LinkedIn. He’d love to hear from you."]];
+function botVoice(){
+ if(!window.speechSynthesis)return null;
+ var vs=speechSynthesis.getVoices().filter(function(v){return /^en/i.test(v.lang)});
+ var pref=/(Aaron|Daniel|Fred|Arthur|Alex|Oliver|Rishi|Gordon|Evan|Tom|Guy|David|Mark|George|James|Male)/i;
+ var bad=/(Samantha|Karen|Moira|Tessa|Fiona|Victoria|Allison|Ava|Susan|Zira|Female|Siri)/i;
+ for(var i=0;i<vs.length;i++){if(pref.test(vs[i].name)&&!bad.test(vs[i].name))return vs[i]}
+ return null;
+}
+if(window.speechSynthesis)speechSynthesis.getVoices();
+var botTok=0;
+function botSay(t){
+ var sv=$("botsvg"),tok=++botTok;$("bubble").textContent=t;sv.classList.remove("talk","speaking");
+ if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(t),bv=botVoice();if(bv){u.voice=bv;u.lang=bv.lang}
+  u.pitch=.8;u.rate=.98;
+  u.onend=u.onerror=function(){if(tok===botTok)sv.classList.remove("speaking")};
+  sv.classList.add("speaking");speechSynthesis.speak(u);
+ }else{void sv.getBoundingClientRect();sv.classList.add("talk")}
+}
 var qs=$("qs");
-qa.forEach(function(q){var li=document.createElement("li"),b=el("button",q[0],"chip");b.onclick=function(){$("bubble").textContent=q[1];var v=$("botsvg");v.classList.remove("talk");void v.getBoundingClientRect();v.classList.add("talk")};li.appendChild(b);qs.appendChild(li)});
+qa.forEach(function(q){var li=document.createElement("li"),b=el("button",q[0],"chip");b.onclick=function(){botSay(q[1])};li.appendChild(b);qs.appendChild(li)});
 go(0);
 document.addEventListener("dragstart",function(e){e.preventDefault()});
 var links=document.querySelectorAll("nav.top .links a");
